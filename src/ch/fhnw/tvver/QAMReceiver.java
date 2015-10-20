@@ -30,7 +30,9 @@ package ch.fhnw.tvver;
 
 import ch.fhnw.ether.media.Parameter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Simple receiver using amplitude modulation.
@@ -50,11 +52,13 @@ public class QAMReceiver extends AbstractReceiver {
 	/* Index for accumulating samples */
 	private int           energyIdx;
 	/* Energy accumulator */
-	private final float[] energy = new float[9];
+	private final float[] energy = new float[5];
 	/* Sample index into the current symbol */
 	private int           sampleIdx;
 	/* Symbol phase of start symbol */
 	private int           symbolPhase;
+    /*ArrayList to record whole Message*/
+    private List<Float> message = new ArrayList<>();
 
 	public QAMReceiver() {
 		super(START_THRESH, ONE_THRESH);
@@ -65,42 +69,54 @@ public class QAMReceiver extends AbstractReceiver {
 	 * 
 	 * @param sample The sample to process.
 	 */
-	private void process(float sample) {
-		final int symbolSz = (int) (samplingFrequency / SimpleAMSender.FREQ);
-		symbolPhase        = symbolSz / 4;
+//	private void process(float sample) {
+//		final int symbolSz = (int) (samplingFrequency / SimpleAMSender.FREQ);
+//		symbolPhase        = symbolSz / 4;
+//
+//		/* Wait for signal to rise above start threshold. */
+//		if(idle) {
+//			if(sample > getVal(START_THRESH)) {
+//				sampleIdx = symbolPhase;
+//				idle     = false;
+//			}
+//		} else {
+//			/* Accumulate energy */
+//			energy[energyIdx] += sample;
+//			/* End of symbol? */
+//			if(++sampleIdx == symbolSz) {
+//				/* Advance to next symbol */
+//				sampleIdx = 0;
+//				energyIdx++;
+//				/* Enough data for a byte? */
+//				if(energyIdx == energy.length) {
+//					/*  Collect bits. */
+//					int val = 0;
+//					for(int i = 0; i < 4; i++)
+//						/* Use first symbol as reference value */
+//						if(energy[i+1] > getVal(ONE_THRESH) * energy[0])
+//							val |= 1 << i;
+//                    addData((byte) val);
+//					/* Advance to next data byte */
+//					energyIdx = 0;
+//					sampleIdx = symbolPhase;
+//					Arrays.fill(energy, 0f);
+//					idle = true;
+//				}
+//			}
+//		}
+//	}
 
-		/* Wait for signal to rise above start threshold. */
-		if(idle) {
+    private void process(float sample) {
+        if(idle) {
 			if(sample > getVal(START_THRESH)) {
 				sampleIdx = symbolPhase;
 				idle     = false;
-			}
-		} else {
-			/* Accumulate energy */
-			energy[energyIdx] += sample;
-			/* End of symbol? */
-			if(++sampleIdx == symbolSz) {
-				/* Advance to next symbol */ 
-				sampleIdx = 0;
-				energyIdx++;
-				/* Enough data for a byte? */
-				if(energyIdx == energy.length) {
-					/*  Collect bits. */
-					int val = 0;
-					for(int i = 0; i < 8; i++)
-						/* Use first symbol as reference value */
-						if(energy[i+1] > getVal(ONE_THRESH) * energy[0])
-							val |= 1 << i;
-					addData((byte) val);
-					/* Advance to next data byte */
-					energyIdx = 0;
-					sampleIdx = symbolPhase;
-					Arrays.fill(energy, 0f);
-					idle = true;
-				}
-			}
-		}
-	}
+			} else {
+                message.add(sample);
+            }
+        }
+    }
+
 
 	/**
 	 * Process samples. Samples are squared (power).
