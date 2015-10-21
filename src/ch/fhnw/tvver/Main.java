@@ -38,7 +38,7 @@ import ch.fhnw.ether.audio.FileAudioTarget;
 import ch.fhnw.ether.audio.IAudioRenderTarget;
 import ch.fhnw.ether.audio.JavaSoundTarget;
 import ch.fhnw.ether.audio.URLAudioSource;
-import ch.fhnw.ether.audio.WhiteNoise;
+import ch.fhnw.ether.audio.fx.WhiteNoise;
 import ch.fhnw.ether.audio.fx.AudioGain;
 import ch.fhnw.ether.audio.fx.BandPass;
 import ch.fhnw.ether.media.AbstractRenderCommand;
