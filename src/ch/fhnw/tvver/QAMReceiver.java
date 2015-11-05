@@ -30,9 +30,9 @@ package ch.fhnw.tvver;
 
 import ch.fhnw.ether.media.Parameter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import ch.fhnw.util.ClassUtilities;
+import ch.fhnw.tvver.QAMSender;
 
 /**
  * Simple receiver using amplitude modulation.
@@ -47,23 +47,55 @@ public class QAMReceiver extends AbstractReceiver {
 	/* Threshold for detecting binary "one". */
 	private static final Parameter ONE_THRESH   =  new Parameter("one",  "One Threshold", 0,1f,0.5f);
 
+	private QAMSender sender = new QAMSender();
+
 	/* Idle / data state */
 	private boolean       idle = true;
 	/* Index for accumulating samples */
 	private int           energyIdx;
 	/* Energy accumulator */
-	private final float[] energy = new float[5];
+	private final float[] energy = new float[16]; // 16 + 1 Treshold byte
 	/* Sample index into the current symbol */
 	private int           sampleIdx;
 	/* Symbol phase of start symbol */
 	private int           symbolPhase;
-    /*ArrayList to record whole Message*/
+	/* ArrayList for comparison Objects */
+	float[][] comparison = new float[4][];
+
+    /* ArrayList to record whole Message*/
     private List<Float> message = new ArrayList<>();
+
+	private final int symbolSz = (int) 48000/3000; // =16 (samplingFrequency / SimpleAMSender.FREQ);
 
 	public QAMReceiver() {
 		super(START_THRESH, ONE_THRESH);
+		initComparisonList();
 	}
-	
+
+	private static final double PI2  = Math.PI * 2;
+
+	private void initComparisonList(){
+		// Decode 00
+		comparison[0] = symbol(-1, -1);
+		// Decode 01
+		comparison[1] = symbol(-1, 1);
+		// Decode 10
+		comparison[2] = symbol(1, -1);
+		// Decode 11
+		comparison[3] = symbol(1, 1);
+	}
+
+
+	private float[] symbol(int msb, int lsb) {
+		final float[] result = new float[symbolSz];
+
+		for(int i = 0; i < result.length; i++)
+			result[i] = (float)( 0.7f * (lsb*Math.sin(PI2*i/symbolSz)
+					+ (msb*Math.cos(PI2*i/symbolSz))));
+
+		return result;
+	}
+
 	/**
 	 * Process one sample (power).
 	 * 
@@ -107,12 +139,53 @@ public class QAMReceiver extends AbstractReceiver {
 //	}
 
     private void process(float sample) {
-        if(idle) {
+		symbolPhase        = symbolSz / 4;
+		if(idle) {
 			if(sample > getVal(START_THRESH)) {
 				sampleIdx = symbolPhase;
 				idle     = false;
 			} else {
-                message.add(sample);
+				/* Accumulate energy */
+				energy[energyIdx] += sample;
+
+				/* End of symbol? */
+				if(++sampleIdx == symbolSz) {
+					/* Advance to next symbol */
+					sampleIdx = 0;
+					energyIdx++;
+					/* Enough data for a byte? */
+					if(energyIdx == energy.length){
+						/*  Collect bits. */
+						int val = 0;
+						int symbolIndex = 5;
+						float minSum = Float.MAX_VALUE;
+						for(int i = 0; i < 4; i++){
+							float sum = 0f;
+							for(int j=0; j<comparison[i].length; j++){
+								//System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
+								if(comparison[i][j] < 0){
+									sum += comparison[i][j] + energy[j];
+								}else{
+									sum += comparison[i][j] - energy[j];
+								}
+							}
+							//System.out.println("Sum="+sum);
+							if(sum < minSum){
+								symbolIndex = i;
+								minSum = sum;
+							}
+						}
+
+						System.out.println("Symbol is " + symbolIndex);
+
+						//addData((byte) val);
+						/* Advance to next data byte */
+						energyIdx = 0;
+						sampleIdx = symbolPhase;
+						Arrays.fill(energy, 0f);
+						idle = true;
+					}
+			  	}
             }
         }
     }

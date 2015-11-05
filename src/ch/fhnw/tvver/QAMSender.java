@@ -43,7 +43,7 @@ public class QAMSender extends AbstractSender {
 
 	/**
 	 * Create a wave with given amplitude. 
-	 * @param amp Amplitude for this symbol.
+	 * @param msb, lsb
 	 * @return Audio data for symbol.
 	 */
 	private float[] symbol(int msb, int lsb) {
@@ -69,7 +69,7 @@ public class QAMSender extends AbstractSender {
 
 	/**
 	 * Create amplitude modulated wave for a given data byte.
-	 * @param b Data byte to encode.
+	 * @param data Data byte to encode.
 	 */
 	@Override
 	public float[] synthesize(byte data) {
