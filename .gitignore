@@ -100,3 +100,6 @@ local.properties
 hs_err_pid*
 
 # Created by .ignore support plugin (hsz.mobi)
+
+# Wave soudn files
+.wav
