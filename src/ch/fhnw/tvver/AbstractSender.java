@@ -64,7 +64,7 @@ public abstract class AbstractSender {
 		FloatList result = new FloatList();
 		for(int i = 0; i < data.length; i++)
 			result.addAll(synthesize(data[i]));
-		return result.toSimpleArray();
+		return result.toArray();
 	}
 
 	/** 
