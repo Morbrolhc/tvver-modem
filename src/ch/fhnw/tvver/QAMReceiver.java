@@ -143,49 +143,49 @@ public class QAMReceiver extends AbstractReceiver {
 		if(idle) {
 			if(sample > getVal(START_THRESH)) {
 				sampleIdx = symbolPhase;
-				idle     = false;
-			} else {
-				/* Accumulate energy */
-				energy[energyIdx] += sample;
+				idle = false;
+			}
+		} else {
+			/* Accumulate energy */
+			energy[energyIdx] += sample;
 
-				/* End of symbol? */
-				if(++sampleIdx == symbolSz) {
-					/* Advance to next symbol */
-					sampleIdx = 0;
-					energyIdx++;
-					/* Enough data for a byte? */
-					if(energyIdx == energy.length){
-						/*  Collect bits. */
-						int val = 0;
-						int symbolIndex = 5;
-						float minSum = Float.MAX_VALUE;
-						for(int i = 0; i < 4; i++){
-							float sum = 0f;
-							for(int j=0; j<comparison[i].length; j++){
-								//System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
-								if(comparison[i][j] < 0){
-									sum += comparison[i][j] + energy[j];
-								}else{
-									sum += comparison[i][j] - energy[j];
-								}
-							}
-							//System.out.println("Sum="+sum);
-							if(sum < minSum){
-								symbolIndex = i;
-								minSum = sum;
+			/* End of symbol? */
+			if(++sampleIdx == symbolSz) {
+				/* Advance to next symbol */
+				sampleIdx = 0;
+				energyIdx++;
+				/* Enough data for a byte? */
+				if(energyIdx == energy.length){
+					/*  Collect bits. */
+					int val = 0;
+					int symbolIndex = 4;
+					float minSum = Float.MAX_VALUE;
+					for(int i = 0; i < 4; i++){
+						float sum = 0f;
+						for(int j=0; j<comparison[i].length; j++){
+							//System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
+							if(comparison[i][j] < 0){
+								sum += comparison[i][j] + energy[j];
+							}else{
+								sum += comparison[i][j] - energy[j];
 							}
 						}
-
-						System.out.println("Symbol is " + symbolIndex);
-
-						//addData((byte) val);
-						/* Advance to next data byte */
-						energyIdx = 0;
-						sampleIdx = symbolPhase;
-						Arrays.fill(energy, 0f);
-						idle = true;
+						//System.out.println("Sum="+sum);
+						if(sum < minSum){
+							symbolIndex = i;
+							minSum = sum;
+						}
 					}
-			  	}
+
+					System.out.println("Symbol is " + symbolIndex);
+
+					//addData((byte) val);
+					/* Advance to next data byte */
+					energyIdx = 0;
+					sampleIdx = symbolPhase;
+					Arrays.fill(energy, 0f);
+					idle = true;
+				}
             }
         }
     }
