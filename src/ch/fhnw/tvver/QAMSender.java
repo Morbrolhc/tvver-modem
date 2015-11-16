@@ -85,6 +85,6 @@ public class QAMSender extends AbstractSender {
 
 			result.addAll(symbol(msb, lsb));
 		}
-		return result.toSimpleArray();
+		return result.toArray();
 	}
 }

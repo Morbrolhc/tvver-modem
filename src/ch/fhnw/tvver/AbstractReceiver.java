@@ -60,7 +60,7 @@ public abstract class AbstractReceiver extends AbstractRenderCommand<IAudioRende
 	 * Process one audio frame. Called by run() process audio data. Implement
 	 * this method to receive and decode data.
 	 * 
-	 * @param state The audio samples in the range [-1..1].
+	 * @param samples The audio samples in the range [-1..1].
 	 */
 	protected abstract void process(float[] samples);	
 
@@ -77,7 +77,7 @@ public abstract class AbstractReceiver extends AbstractRenderCommand<IAudioRende
 	 * @return The recevied data.
 	 */
 	public final byte[] getAndClearData() {
-		byte[] result = data.toSimpleArray();
+		byte[] result = data.toArray();
 		data.clear();
 		return result;
 	}

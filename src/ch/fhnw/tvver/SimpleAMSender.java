@@ -58,7 +58,7 @@ public class SimpleAMSender extends AbstractSender {
 
 	/**
 	 * Create amplitude modulated wave for a given data byte.
-	 * @param b Data byte to encode.
+	 * @param data Data byte to encode.
 	 */
 	@Override
 	public float[] synthesize(byte data) {
@@ -70,6 +70,6 @@ public class SimpleAMSender extends AbstractSender {
 		for(int i = 0; i < 8; i++)
 			result.addAll(symbol((data & (1 << i)) == 0 ? 0 : 0.8f));
 
-		return result.toSimpleArray();
+		return result.toArray();
 	}
 }
