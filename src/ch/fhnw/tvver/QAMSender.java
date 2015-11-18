@@ -78,7 +78,7 @@ public class QAMSender extends AbstractSender {
 		/* Send start bit. */
 		result.addAll(symbol(1f));
 		/* Send data bits. */
-		for(int i = 0; i < 8; i+=2) {
+		for(int i = 6; i >= 0; i-=2) {
 			int msb = 0, lsb = 0;
             lsb = (data & (0b1<<i)) == 0b1 ? 1 : -1;
             msb = (data & (0b10<<i)) == 0b10 ? 1 : -1;
