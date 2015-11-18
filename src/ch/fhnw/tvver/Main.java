@@ -65,7 +65,7 @@ public class Main {
 	/* Noise level */
 	final static float NOISE     = 0.15f;
 	/* Attenuation steps */
-	final static float GAINS[]   = {0.5f};
+	final static float GAINS[]   = {1, 0.75f, 0.5f};
 
 	/**
 	 * Invoke test program.

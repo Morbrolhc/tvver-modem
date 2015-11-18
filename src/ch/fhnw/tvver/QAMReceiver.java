@@ -202,9 +202,12 @@ public class QAMReceiver extends AbstractReceiver {
 							String byteString = bitString.substring(i*8, (i+1)*8);
 							bytes[i] = (byte)(int)Integer.valueOf(byteString, 2); // Byte.parseByte(byteString, 2);
 						}
-
-						addData(bytes[0]);
-
+						if(bitString.equals("11111111")){
+							idle = true;
+							first = true;
+						}else{
+							addData(bytes[0]);
+						}
 						bitString = "";
 					}
 

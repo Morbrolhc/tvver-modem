@@ -92,8 +92,14 @@ public class QAMSender extends AbstractSender {
 	public float[] synthesize(byte[] data) {
 		FloatList result = new FloatList();
 		result.addAll(symbol(1f));
-		for(int i = 0; i < data.length; i++)
+		for(int i = 0; i < data.length; i++) {
 			result.addAll(synthesize(data[i]));
+		}
+		result.addAll(symbol(1,1));
+		result.addAll(symbol(1,1));
+		result.addAll(symbol(1,1));
+		result.addAll(symbol(1,1));
+
 		return result.toArray();
 	}
 }
