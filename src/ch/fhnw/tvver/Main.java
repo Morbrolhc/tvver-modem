@@ -58,14 +58,14 @@ import ch.fhnw.util.FloatList;
 public class Main {
 	/* Test data types.*/
 	enum Type{RANDOM, COUNT, TEXT, CONST_00, CONST_01, CONST_55, CONST_AA, CONST_FF}
-	final static Type dataType = Type.TEXT;
+	final static Type dataType = Type.RANDOM;
 	/* Frequency band */
 	final static float LOW_FREQ  = 100;
 	final static float HIGH_FREQ = 4000;
 	/* Noise level */
 	final static float NOISE     = 0.15f;
 	/* Attenuation steps */
-	final static float GAINS[]   = {1.0f,0.75f,0.5f};
+	final static float GAINS[]   = {0.5f};
 
 	/**
 	 * Invoke test program.

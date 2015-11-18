@@ -43,7 +43,7 @@ import ch.fhnw.tvver.QAMSender;
 public class QAMReceiver extends AbstractReceiver {
 
 	/* Experimental threshold for detecting start tone. Should be adaptive. */
-	private static final Parameter START_THRESH = new Parameter("start", "Start Threshold", 0,0.5f,0.1f);
+	private static final Parameter START_THRESH = new Parameter("start", "Start Threshold", 0,0.5f,0.2f);
 	/* Threshold for detecting binary "one". */
 	private static final Parameter ONE_THRESH   =  new Parameter("one",  "One Threshold", 0,1f,0.5f);
 
@@ -56,7 +56,7 @@ public class QAMReceiver extends AbstractReceiver {
 	/* Energy accumulator */
 	private final float[] energy = new float[12]; // 16 + 1 Treshold byte
 	/* Sample index into the current symbol */
-	private int           sampleIdx;
+	//private int           sampleIdx;
 	/* Symbol phase of start symbol */
 	private int           symbolPhase;
 	/* ArrayList for comparison Objects */
@@ -64,6 +64,10 @@ public class QAMReceiver extends AbstractReceiver {
 
     /* ArrayList to record whole Message*/
     private List<Float> message = new ArrayList<>();
+
+	private boolean first = true;
+
+	String bitString = new String();
 
 	private final int symbolSz = (int) 48000/4000; // =12 (samplingFrequency / SimpleAMSender.FREQ);
 
@@ -144,49 +148,71 @@ public class QAMReceiver extends AbstractReceiver {
 		symbolPhase        = symbolSz / 4;
 		if(idle) {
 			if(sample > getVal(START_THRESH)) {
-				sampleIdx = symbolPhase;
+				//sampleIdx = symbolPhase;
 				idle = false;
+				energyIdx = 2;
 			}
 		} else {
 			/* Accumulate energy */
-			energy[energyIdx] += sample;
+			energy[energyIdx] = sample;
 
 			/* End of symbol? */
-			if(++sampleIdx == symbolSz) {
-				/* Advance to next symbol */
-				sampleIdx = 0;
-				energyIdx++;
+			if(++energyIdx == symbolSz) {
 				/* Enough data for a byte? */
-				if(energyIdx == energy.length){
-					/*  Collect bits. */
+				if(first){
+					first = false;
+					energyIdx = 0;
+					Arrays.fill(energy, 0f);
+					return;
+				}
+				//System.out.println("End of Symbol");
+
+				/*  Collect bits. */
 					int val = 0;
 					int symbolIndex = 5;
 					float minSum = Float.MAX_VALUE;
 					for(int i = 0; i < comparison.length; i++){
 						float sum = 0f;
-						for(int j=0; j<comparison[i].length-1; j++){
+						for(int j=2; j<comparison[i].length-3; j++){
+							//System.out.println("Comparison i="+comparison[i][j]+" Energy="+energy[j]);
 							//System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
-							sum += Math.abs((energy[j+1] - energy[j]) - (comparison[i][j+1]-comparison[i][j])  );
-
-							if(i==0){
-								System.out.println(energy[j]);
-							}
+							sum += Math.abs((energy[j+1] - energy[j]) -(comparison[i][j+1]-comparison[i][j]) );
 						}
-						System.out.println("Sum="+Math.abs(sum));
+						//System.out.println("Sum="+Math.abs(sum));
 						if(Math.abs(sum) < minSum){
 							symbolIndex = i;
 							minSum = Math.abs(sum);
 						}
 					}
 
-					System.out.println("Symbol is " + symbolIndex);
+					if(symbolIndex == 0){
+						bitString += "00";
+					}else if(symbolIndex == 1){
+						bitString += "01";
+					}else if(symbolIndex == 2){
+						bitString += "10";
+					}else if(symbolIndex == 3){
+						bitString += "11";
+					}
+
+					if(bitString.length() >= 8){
+						//System.out.println(bitString);
+						byte[] bytes = new byte[ bitString.length() / 8 ];
+						for(int i=0; i<bytes.length; i++){
+							String byteString = bitString.substring(i*8, (i+1)*8);
+							bytes[i] = (byte)(int)Integer.valueOf(byteString, 2); // Byte.parseByte(byteString, 2);
+						}
+
+						addData(bytes[0]);
+
+						bitString = "";
+					}
+
 						//addData((byte) val);
 					/* Advance to next data byte */
 					energyIdx = 0;
-					sampleIdx = symbolPhase;
 					Arrays.fill(energy, 0f);
-					idle = true;
-				}
+					//idle = true;
 		  	}
         }
     }
@@ -199,7 +225,8 @@ public class QAMReceiver extends AbstractReceiver {
 	 */
 	@Override
 	protected void process(float[] samples) {
-		for(int i = 0; i < samples.length; i++)
-			process(samples[i]*samples[i]);
+		for(int i = 0; i < samples.length; i++) {
+			process(samples[i]);
+		}
 	}
 }

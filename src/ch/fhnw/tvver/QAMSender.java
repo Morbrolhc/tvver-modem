@@ -78,13 +78,11 @@ public class QAMSender extends AbstractSender {
 	@Override
 	public float[] synthesize(byte data) {
 		FloatList result = new FloatList();
-        System.out.println(Integer.toBinaryString(data & 0xFF));
         /* Send data bits. */
 		for(int i = 6; i >= 0; i-=2) {
 			int msb = 0, lsb = 0;
             lsb = ((data>>>i) & 0b1) == 0b1 ? 1 : 0;
             msb = ((data>>>i) & 0b10) == 0b10 ? 1 : 0;
-            System.out.println(msb + " " + lsb);
             result.addAll(symbol(msb, lsb));
 		}
 		return result.toArray();
