@@ -30,6 +30,8 @@ package ch.fhnw.tvver;
 
 import ch.fhnw.util.FloatList;
 
+import java.util.BitSet;
+
 /**
  * Simple sender using amplitude modulation.
  * 
@@ -49,6 +51,8 @@ public class QAMSender extends AbstractSender {
 	private float[] symbol(int msb, int lsb) {
 		final int symbolSz = (int) (samplingFrequency / FREQ);
 		final float[] result = new float[symbolSz];
+        if(msb == 0) msb = -1;
+        if(lsb == 0) lsb = -1;
 
         for(int i = 0; i < result.length; i++)
 			result[i] = (float)( 0.7f * (lsb*Math.sin(PI2*i/symbolSz)
@@ -74,17 +78,24 @@ public class QAMSender extends AbstractSender {
 	@Override
 	public float[] synthesize(byte data) {
 		FloatList result = new FloatList();
-
-		/* Send start bit. */
-		result.addAll(symbol(1f));
-		/* Send data bits. */
+        System.out.println(Integer.toBinaryString(data & 0xFF));
+        /* Send data bits. */
 		for(int i = 6; i >= 0; i-=2) {
 			int msb = 0, lsb = 0;
-            lsb = (data & (0b1<<i)) == 0b1 ? 1 : -1;
-            msb = (data & (0b10<<i)) == 0b10 ? 1 : -1;
-
-			result.addAll(symbol(msb, lsb));
+            lsb = ((data>>>i) & 0b1) == 0b1 ? 1 : 0;
+            msb = ((data>>>i) & 0b10) == 0b10 ? 1 : 0;
+            System.out.println(msb + " " + lsb);
+            result.addAll(symbol(msb, lsb));
 		}
+		return result.toArray();
+	}
+
+	@Override
+	public float[] synthesize(byte[] data) {
+		FloatList result = new FloatList();
+		result.addAll(symbol(1f));
+		for(int i = 0; i < data.length; i++)
+			result.addAll(synthesize(data[i]));
 		return result.toArray();
 	}
 }
