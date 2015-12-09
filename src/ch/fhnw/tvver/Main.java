@@ -58,7 +58,7 @@ import ch.fhnw.util.FloatList;
 public class Main {
 	/* Test data types.*/
 	enum Type{RANDOM, COUNT, TEXT, CONST_00, CONST_01, CONST_55, CONST_AA, CONST_FF}
-	final static Type dataType = Type.RANDOM;
+	final static Type dataType = Type.CONST_FF;
 	/* Frequency band */
 	final static float LOW_FREQ  = 100;
 	final static float HIGH_FREQ = 4000;

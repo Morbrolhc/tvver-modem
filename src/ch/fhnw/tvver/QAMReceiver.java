@@ -62,10 +62,11 @@ public class QAMReceiver extends AbstractReceiver {
 	/* ArrayList for comparison Objects */
 	float[][] comparison = new float[4][];
 
-    /* ArrayList to record whole Message*/
-    private List<Float> message = new ArrayList<>();
+    private int msgLength = Integer.MAX_VALUE;
+    private int msgCounter = 0;
 
 	private boolean first = true;
+	private boolean second = true;
 
 	String bitString = new String();
 
@@ -88,7 +89,6 @@ public class QAMReceiver extends AbstractReceiver {
 		// Decode 11
 		comparison[3] = symbol(1, 1);
 
-		System.out.println(Arrays.deepToString(comparison));
 	}
 
 
@@ -165,57 +165,66 @@ public class QAMReceiver extends AbstractReceiver {
 					Arrays.fill(energy, 0f);
 					return;
 				}
-				//System.out.println("End of Symbol");
 
 				/*  Collect bits. */
-					int val = 0;
-					int symbolIndex = 5;
-					float minSum = Float.MAX_VALUE;
-					for(int i = 0; i < comparison.length; i++){
-						float sum = 0f;
-						for(int j=2; j<comparison[i].length-3; j++){
-							//System.out.println("Comparison i="+comparison[i][j]+" Energy="+energy[j]);
-							//System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
-							sum += Math.abs((energy[j+1] - energy[j]) -(comparison[i][j+1]-comparison[i][j]) );
-						}
-						//System.out.println("Sum="+Math.abs(sum));
-						if(Math.abs(sum) < minSum){
-							symbolIndex = i;
-							minSum = Math.abs(sum);
-						}
-					}
+                int symbolIndex = 5;
+                float minSum = Float.MAX_VALUE;
+                for(int i = 0; i < comparison.length; i++){
+                    float sum = 0f;
+                    for(int j=2; j<comparison[i].length-3; j++){
+                        //System.out.println("Comparison i="+comparison[i][j]+" Energy="+energy[j]);
+                        //System.out.println("comparison["+i+"]["+j+"] "+comparison[i][j]+" - energy"+energy[j]);
+                        sum += Math.abs((energy[j+1] - energy[j]) -(comparison[i][j+1]-comparison[i][j]) );
+                    }
+                    //System.out.println("Sum="+Math.abs(sum));
+                    if(Math.abs(sum) < minSum){
+                        symbolIndex = i;
+                        minSum = Math.abs(sum);
+                    }
+                }
 
-					if(symbolIndex == 0){
-						bitString += "00";
-					}else if(symbolIndex == 1){
-						bitString += "01";
-					}else if(symbolIndex == 2){
-						bitString += "10";
-					}else if(symbolIndex == 3){
-						bitString += "11";
-					}
+                if(symbolIndex == 0){
+                    bitString += "00";
+                }else if(symbolIndex == 1){
+                    bitString += "01";
+                }else if(symbolIndex == 2){
+                    bitString += "10";
+                }else if(symbolIndex == 3){
+                    bitString += "11";
+                }
 
-					if(bitString.length() >= 8){
-						//System.out.println(bitString);
-						byte[] bytes = new byte[ bitString.length() / 8 ];
-						for(int i=0; i<bytes.length; i++){
-							String byteString = bitString.substring(i*8, (i+1)*8);
-							bytes[i] = (byte)(int)Integer.valueOf(byteString, 2); // Byte.parseByte(byteString, 2);
-						}
-						if(bitString.equals("11111111")){
-							idle = true;
-							first = true;
-						}else{
-							addData(bytes[0]);
-						}
-						bitString = "";
-					}
+                if(bitString.length() >= 8){
+                    //System.out.println(bitString);
+                    if(second) {
+                        msgLength = Integer.valueOf(bitString, 2);
+                        msgLength++;
+                        System.out.println(msgLength);
+                        second = false;
+                    } else {
+                        byte[] bytes = new byte[bitString.length() / 8];
+                        for (int i = 0; i < bytes.length; i++) {
+                            String byteString = bitString.substring(i * 8, (i + 1) * 8);
+                            bytes[i] = (byte) (int) Integer.valueOf(byteString, 2); // Byte.parseByte(byteString, 2);
+                        }
+                        msgCounter++;
+                        if (msgCounter > msgLength) {
+                            msgCounter = 0;
+                            msgLength = Integer.MAX_VALUE;
+                            idle = true;
+                            first = true;
+                            second = true;
+                        } else {
+                            addData(bytes[0]);
+                        }
+                    }
+                    bitString = "";
+                }
 
-						//addData((byte) val);
-					/* Advance to next data byte */
-					energyIdx = 0;
-					Arrays.fill(energy, 0f);
-					//idle = true;
+                    //addData((byte) val);
+                /* Advance to next data byte */
+                energyIdx = 0;
+                Arrays.fill(energy, 0f);
+                //idle = true;
 		  	}
         }
     }

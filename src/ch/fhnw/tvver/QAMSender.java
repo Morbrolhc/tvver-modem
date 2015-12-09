@@ -30,8 +30,6 @@ package ch.fhnw.tvver;
 
 import ch.fhnw.util.FloatList;
 
-import java.util.BitSet;
-
 /**
  * Simple sender using amplitude modulation.
  * 
@@ -92,13 +90,11 @@ public class QAMSender extends AbstractSender {
 	public float[] synthesize(byte[] data) {
 		FloatList result = new FloatList();
 		result.addAll(symbol(1f));
-		for(int i = 0; i < data.length; i++) {
+		result.addAll(synthesize((byte)(data.length-1 & 0xFF)));
+        System.out.println(data.length);
+        for(int i = 0; i < data.length; i++) {
 			result.addAll(synthesize(data[i]));
 		}
-		result.addAll(symbol(1,1));
-		result.addAll(symbol(1,1));
-		result.addAll(symbol(1,1));
-		result.addAll(symbol(1,1));
 
 		return result.toArray();
 	}
