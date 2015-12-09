@@ -198,7 +198,6 @@ public class QAMReceiver extends AbstractReceiver {
                     if(second) {
                         msgLength = Integer.valueOf(bitString, 2);
                         msgLength++;
-                        System.out.println(msgLength);
                         second = false;
                     } else {
                         byte[] bytes = new byte[bitString.length() / 8];

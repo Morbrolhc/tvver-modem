@@ -29,6 +29,10 @@
 package ch.fhnw.tvver;
 
 import ch.fhnw.util.FloatList;
+import com.sun.javaws.exceptions.InvalidArgumentException;
+import org.bridj.ann.Array;
+
+import java.util.Arrays;
 
 /**
  * Simple sender using amplitude modulation.
@@ -41,6 +45,7 @@ public class QAMSender extends AbstractSender {
 	/* Carrier frequency. */
 	static         final float  FREQ = 4000;
 
+    static final float[] SILENCE = new float[48];
 	/**
 	 * Create a wave with given amplitude. 
 	 * @param msb, lsb
@@ -88,14 +93,37 @@ public class QAMSender extends AbstractSender {
 
 	@Override
 	public float[] synthesize(byte[] data) {
-		FloatList result = new FloatList();
-		result.addAll(symbol(1f));
-		result.addAll(synthesize((byte)(data.length-1 & 0xFF)));
+        FloatList result = new FloatList();
+        if(data.length == 0) throw new IllegalArgumentException("data.length must not be null");
+		int nFrames = data.length/256;
+        if(data.length%256 != 0) nFrames++;
+        byte[][] split = new byte[nFrames][];
+        System.out.println(nFrames);
+        for (int i = 0; i < split.length; i++) {
+            if(i+1 == nFrames){
+                split[i] = Arrays.copyOfRange(data, 256*i, data.length);
+                System.out.println(split[i].length);
+            } else {
+                split[i] = Arrays.copyOfRange(data, 256 * i, 256 * (i + 1));
+                System.out.println(split[i].length);
+            }
+        }
+        for (byte[] frame : split) {
+            result.addAll(synthesizeFrame(frame));
+        }
+        return result.toArray();
+	}
+
+	public float[] synthesizeFrame(byte[] data) {
+        FloatList result = new FloatList();
+        result.addAll(symbol(1f));
+        result.addAll(synthesize((byte)(data.length-1 & 0xFF)));
         System.out.println(data.length);
         for(int i = 0; i < data.length; i++) {
-			result.addAll(synthesize(data[i]));
-		}
+            result.addAll(synthesize(data[i]));
+        }
+        result.addAll(SILENCE);
+        return result.toArray();
+    }
 
-		return result.toArray();
-	}
 }

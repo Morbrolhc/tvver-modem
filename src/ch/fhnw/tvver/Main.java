@@ -268,7 +268,7 @@ public class Main {
 			return result;
 		}
 		case CONST_FF: {
-			byte[] result = new byte[64];
+			byte[] result = new byte[256];
 			Arrays.fill(result, (byte)0xFF);
 			return result;
 		}
